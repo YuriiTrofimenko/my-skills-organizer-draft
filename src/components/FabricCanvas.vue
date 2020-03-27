@@ -1,7 +1,7 @@
 <template lang='pug'>
   // На действие "Открыть контекстное меню" для всей области рисования
   // устанавливаем собственный обработчик события - contextMenuOpen
-  .container(v-on:contextmenu.prevent='contextMenuOpen')
+  .container(v-on:contextmenu.prevent='contextMenuOpen' v-longclick='contextMenuOpen')
     // В верхней части разметки располагаем представления для всплывающих
     // сообщений из библиотеки uimini
     #cancelledMessage.ui-message.ui-message--danger
@@ -156,7 +156,8 @@ export default {
         onPreviousStep: this.PreviousStepCallback,
         onNextStep: this.NextStepCallback,
         onStop: this.StopCallback
-      }
+      },
+      lastMouseEvent: null
     }
   },
   // Правила валидации
@@ -424,6 +425,7 @@ export default {
     // Handle mousemove when dependence creation hint is shown
     // Метод обработки перемещения курсора мыши, когда показана подсказка создания зависимости
     mouseMove (ev) {
+      this.lastMouseEvent = ev
       if (this.isObjectMoving) {
         var modifiedObject = ev.target
         const id = modifiedObject.get('id')
@@ -487,12 +489,17 @@ export default {
       }
     },
     contextMenuOpen (ev) {
-      ev.stopPropagation()
-      ev.stopImmediatePropagation()
+      // ev.stopPropagation()
+      // ev.stopImmediatePropagation()
       if (this.$refs.menu) {
+        if (!ev) {
+          ev = this.lastMouseEvent.e
+          console.log('contextMenuOpen', ev)
+        }
+        console.log('contextMenuOpen', ev)
         this.$refs.menu.open(ev)
       }
-      return false
+      // return false
     },
     onContextMenuClick (id) {
       if (id === 'deleteNodeContextMenuItem') {

@@ -29,6 +29,7 @@
     "vue-fabric": "^0.1.19",
     "vue-flag-icon": "^1.0.6",
     "vue-i18n": "^8.15.3",
+    "vue-long-click": "0.0.4",
     "vue-router": "^3.0.1",
     "vue-tour": "^1.1.0",
     "vuelidate": "^0.7.4",

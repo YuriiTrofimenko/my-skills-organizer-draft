@@ -28,6 +28,8 @@ import { i18n } from './plugins/i18n'
 
 import FlagIcon from 'vue-flag-icon'
 
+import { longClickDirective } from 'vue-long-click'
+
 library.add(faUserSecret, faFileImport, faEdit, faTrash, faPlay)
 
 require('vue-tour/dist/vue-tour.css')
@@ -38,6 +40,8 @@ Vue.use(VueCookies)
 Vue.use(VTooltip)
 Vue.use(FlagIcon)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
+
+Vue.directive('longclick', longClickDirective({delay: 1200, interval: 0}))
 
 VueCookies.config('365d')
 
