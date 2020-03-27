@@ -311,6 +311,8 @@ export default {
         var nodeCircle = new fabric.Circle({id: n.id, fill: color, radius: n.radius, top: n.top, left: n.left})
         // ... добавляем его в область рисования
         this.canvas.add(nodeCircle)
+        // ... отключаем у него элементы управления
+        nodeCircle.hasControls = false
         // ... отправляем его на самый дальний план
         this.canvas.sendToBack(nodeCircle)
         // Создаем объект "текст" на основе заголовка текущего узла
@@ -485,9 +487,12 @@ export default {
       }
     },
     contextMenuOpen (ev) {
+      ev.stopPropagation()
+      ev.stopImmediatePropagation()
       if (this.$refs.menu) {
         this.$refs.menu.open(ev)
       }
+      return false
     },
     onContextMenuClick (id) {
       if (id === 'deleteNodeContextMenuItem') {
