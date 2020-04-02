@@ -65,8 +65,8 @@ export default {
         commit('setLoading', false)
         commit('setError', error.message)
         throw error
-      } */
-    }
+      }
+    } */
   },
   getters: {
     // Return user (for get id)
