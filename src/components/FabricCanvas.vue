@@ -1,7 +1,8 @@
 <template lang='pug'>
   // На действие "Открыть контекстное меню" для всей области рисования
   // устанавливаем собственный обработчик события - contextMenuOpen
-  .container(v-on:contextmenu.prevent='contextMenuOpen' v-longclick='contextMenuOpen')
+  // .container(v-on:contextmenu.prevent='contextMenuOpen' v-longclick='contextMenuOpen')
+  .container(v-on:contextmenu.prevent='contextMenuOpen')
     // В верхней части разметки располагаем представления для всплывающих
     // сообщений из библиотеки uimini
     #cancelledMessage.ui-message.ui-message--danger

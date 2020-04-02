@@ -39,6 +39,33 @@ export default {
       firebase.auth().signOut()
       // Send mutation null
       commit('setUser', null)
+    }/* ,
+    persistEmail ({commit, getters}) {
+      commit('clearError')
+      commit('setLoading', true)
+      try {
+        if (getters.user) {
+          const emailResponse =
+            await firebase.database()
+              .ref(getters.user.id + '/userdata/email')
+              .once('value')
+          // Get value
+          const email = emailResponse.val()
+          if (locale != null) {
+            await firebase.database()
+              .ref(getters.user.id + '/locale')
+              .child(Object.keys(locale)[0])
+              .update({payload})
+          } else {
+            await firebase.database().ref(getters.user.id + '/locale').push({payload})
+          }
+        }
+        commit('setLoading', false)
+      } catch (error) {
+        commit('setLoading', false)
+        commit('setError', error.message)
+        throw error
+      } */
     }
   },
   getters: {
