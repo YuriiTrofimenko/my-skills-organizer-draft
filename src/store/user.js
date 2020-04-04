@@ -53,10 +53,11 @@ export default {
               .once('value')
           // Get value
           const email = emailResponse.val()
-          console.log('email', email)
+          // Если email не существует в firebase
           if (!email) {
-            console.log('email', getters.user)
+            // создаем ветвь в firebase в структуре данных текущего пользователя
             await firebase.database().ref(getters.user.id).child('userdata').child('email').push({'email': 'empty'})
+            // и заносим туде значение email
             await firebase.database().ref(getters.user.id).child('userdata').child('email').set(getters.user.email)
           }
         }

@@ -112,6 +112,7 @@ export default ({
     async newNode ({commit, getters}, payload) {
       commit('clearError')
       commit('setLoading', true)
+      console.log((new Date()).toISOString())
       try {
         // Use helped class
         const newNode = new Node(
@@ -126,7 +127,21 @@ export default ({
           payload.top// ,
           // getters.user.id
         )
-        const node = await firebase.database().ref(getters.user.id + '/nodes').push(newNode)
+        const nowDateISOString = (new Date()).toISOString()
+        const node = await firebase.database().ref(getters.user.id + '/nodes').push({...newNode, createdAt: nowDateISOString})
+        // const node = await firebase.database().ref(getters.user.id + '/nodes').push(newNode)
+        const nodesUpdatedAtResponse =
+          await firebase.database()
+            .ref(getters.user.id + '/userdata/nodeSetUpdatedAt')
+            .once('value')
+        const nodesUpdatedAt = nodesUpdatedAtResponse.val()
+        // Если nodesUpdatedAt не существует в firebase
+        if (!nodesUpdatedAt) {
+          // создаем ветвь в firebase в структуре данных текущего пользователя
+          await firebase.database().ref(getters.user.id).child('userdata').child('nodesUpdatedAt').push({'nodesUpdatedAt': 'empty'})
+        }
+        // и заносим туда значение nodesUpdatedAt
+        await firebase.database().ref(getters.user.id).child('userdata').child('nodesUpdatedAt').set(nowDateISOString)
         // Send mutation
         commit('newNode', {
           ...newNode,
