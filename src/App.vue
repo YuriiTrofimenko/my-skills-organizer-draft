@@ -71,7 +71,10 @@ export default {
     // Обработчик событий "пользователь вошел / вышел"
     firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
-        store.dispatch('loggedUser', user)
+        store.dispatch('loggedUser', user).then(() => {
+          // Сохраняем email пользователя в firebase, если его там еще нет
+          store.dispatch('persistEmail')
+        })
         store.dispatch('loadLocale', user)
         store.dispatch('loadNodes', user)
         store.dispatch('loadDeps', user)

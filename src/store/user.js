@@ -32,18 +32,20 @@ export default {
     // Logged
     loggedUser ({commit}, payload) {
       // Send mutation new uid used helped Class
-      commit('setUser', new User(payload.uid, payload.displayName, payload.photoURL))
+      commit('setUser', new User(payload.uid, payload.displayName, payload.photoURL, payload.email))
     },
     // Logout
     logoutUser ({commit}) {
       firebase.auth().signOut()
       // Send mutation null
       commit('setUser', null)
-    }/* ,
-    persistEmail ({commit, getters}) {
+    },
+    // Сохранение email пользователя в firebase, если ранее не был сохранен
+    async persistEmail ({commit, getters}) {
       commit('clearError')
       commit('setLoading', true)
       try {
+        console.log('getters.user', getters.user)
         if (getters.user) {
           const emailResponse =
             await firebase.database()
@@ -51,13 +53,11 @@ export default {
               .once('value')
           // Get value
           const email = emailResponse.val()
-          if (locale != null) {
-            await firebase.database()
-              .ref(getters.user.id + '/locale')
-              .child(Object.keys(locale)[0])
-              .update({payload})
-          } else {
-            await firebase.database().ref(getters.user.id + '/locale').push({payload})
+          console.log('email', email)
+          if (!email) {
+            console.log('email', getters.user)
+            await firebase.database().ref(getters.user.id).child('userdata').child('email').push({'email': 'empty'})
+            await firebase.database().ref(getters.user.id).child('userdata').child('email').set(getters.user.email)
           }
         }
         commit('setLoading', false)
@@ -66,7 +66,7 @@ export default {
         commit('setError', error.message)
         throw error
       }
-    } */
+    }
   },
   getters: {
     // Return user (for get id)
