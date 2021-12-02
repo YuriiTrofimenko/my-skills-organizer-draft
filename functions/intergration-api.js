@@ -6,8 +6,29 @@ exports.addNode = function (functions, admin) {
       const uId = req.query.uId
       // Grab the json body
       const nodeBody = req.body
+      //Получение всех узлов данного пользователя
+      const nodesResponse =
+        await admin.database()
+          .ref(uId + '/nodes')
+          .once('value')
+      // Get value
+      const nodes = nodesResponse.val()
+      //Перебирая все узлы текущего пользователя находим максимальное значение свойства top
+      let maxNodeTop = 100
+      if (nodes !== null) {
+        maxNodeTop = nodes[Object.keys(nodes)[0]].top
+        Object.keys(nodes).forEach(key => {
+          const n = nodes[key]
+          if (n) {
+            if (n.top > maxNodeTop) {
+              maxNodeTop = n.top
+            }
+          }
+        })
+        maxNodeTop += 200
+      }
       // Копируем из тела сообщения от внешнего источника
-      // данные в объект нового узла цели 
+      // данные в объект нового узла цели
       const node = {
         title: nodeBody.title,
         type: nodeBody.type,
@@ -17,7 +38,7 @@ exports.addNode = function (functions, admin) {
         dependenciesSatisfied: (nodeBody.dependenciesSatisfied === "true"),
         radius: parseInt(nodeBody.radius, 10),
         left: parseInt(nodeBody.left, 10),
-        top: parseInt(nodeBody.top, 10)
+        top: maxNodeTop
       }
       // Push the new node into the Realtime Database using the Firebase Admin SDK.
       const snapshot = await admin.database().ref(uId + '/nodes').push(node)
