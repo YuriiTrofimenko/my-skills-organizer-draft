@@ -18,3 +18,4 @@ selenium-debug.log
 
 # Custom
 build
+package-lock.json
