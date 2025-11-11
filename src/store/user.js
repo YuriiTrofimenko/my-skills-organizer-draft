@@ -8,7 +8,6 @@ export default {
   },
   mutations: {
     setUser(state, payload) {
-      // Проверяем, действительно ли изменился пользователь
       const currentId = state.user?.id
       const newId = payload?.id
       
@@ -19,7 +18,9 @@ export default {
       } else {
         console.log('👤 User state unchanged, skipping update')
       }
-    },
+    }
+  },
+  actions: {
     async loginUser ({commit}, {email, password}) {
       commit('clearError')
       commit('setLoading', true)
@@ -31,7 +32,6 @@ export default {
         
         if (error) {
           console.error('❌ Auth error:', error)
-          // Специальная обработка ошибок аутентификации
           if (error.message.includes('session') || error.message.includes('token')) {
             throw new Error('Authentication session error. Please try again.')
           }
@@ -55,25 +55,32 @@ export default {
         throw error
       }
     },
-    // Logged
+    
     loggedUser ({commit}, payload) {
-      // Send mutation new uid used helped Class
       commit('setUser', new User(payload.uid, payload.displayName, payload.photoURL, payload.email))
     },
-    // Logout
+    
     async logoutUser ({commit}) {
-      await supabase.auth.signOut()
-      // Send mutation null
-      commit('setUser', null)
+      commit('setLoading', true)
+      try {
+        await supabase.auth.signOut()
+        commit('setUser', null)
+        commit('setLoading', false)
+        console.log('✅ User logged out successfully')
+      } catch (error) {
+        console.error('❌ Logout error:', error)
+        commit('setLoading', false)
+        commit('setError', error.message)
+        throw error
+      }
     },
-    // Сохранение email пользователя в Supabase, если ранее не был сохранен
+    
     async persistEmail ({commit, getters}) {
       commit('clearError')
       commit('setLoading', true)
       try {
         console.log('getters.user', getters.user)
         if (getters.user) {
-          // Check if userdata exists
           const { data: userdata, error: fetchError } = await supabase
             .from('userdata')
             .select('email')
@@ -84,9 +91,7 @@ export default {
             throw fetchError
           }
           
-          // Если email не существует в Supabase
           if (!userdata || !userdata.email) {
-            // создаем или обновляем запись в Supabase
             const { error: upsertError } = await supabase
               .from('userdata')
               .upsert({
@@ -106,11 +111,9 @@ export default {
     }
   },
   getters: {
-    // Return user (for get id)
     user (state) {
       return state.user
     },
-    // Check User (for logged)
     checkUser (state) {
       return state.user !== null
     }

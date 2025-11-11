@@ -35,6 +35,7 @@
 <script>
 import { supabase } from '@/helpers/supabaseConfig'
 import VideoTutorialButton from '../Common/VideoTutorialButton.vue'
+import { tourManager } from '@/utils/tourManager'
 
 export default {
   name: 'signin',
@@ -63,11 +64,52 @@ export default {
     }
   },
   mounted () {
-    if (!this.$cookies.get('vtour_signin_finished')) {
+    /* if (!this.$cookies.get('vtour_signin_finished')) {
       this.$tours['signin'].start()
+    } */
+    if (!this.$cookies.get('vtour_signin_finished')) {
+      this.checkAndStartTour()
     }
   },
   methods: {
+    async checkAndStartTour() {
+      try {
+        console.log('=== SIGNIN TOUR CHECK ===')
+        
+        await tourManager.testConnection()
+        
+        const tourCompleted = await tourManager.isTourCompleted('signin')
+        console.log('Signin tour should start:', !tourCompleted)
+        
+        if (!tourCompleted) {
+          console.log('🚀 Starting signin tour')
+          this.$nextTick(() => {
+            this.$tours['signin'].start()
+          })
+        } else {
+          console.log('⏩ Skipping signin tour - already completed')
+        }
+      } catch (error) {
+        console.error('💥 Error in checkAndStartTour:', error)
+      }
+    },
+
+    async StopCallback() {
+      try {
+        console.log('=== SIGNIN TOUR COMPLETED ===')
+        if (this.$tours['signin'].isLast) {
+          console.log('🏁 Signin tour finished, saving to DB...')
+          const success = await tourManager.markTourCompleted('signin')
+          if (success) {
+            console.log('💾 Successfully saved signin tour completion to DB')
+          } else {
+            console.error('💥 FAILED to save signin tour completion to DB')
+          }
+        }
+      } catch (error) {
+        console.error('💥 Error in StopCallback:', error)
+      }
+    },
     async signIn() {
       this.loading = true
       this.error = ''

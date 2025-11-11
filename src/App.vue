@@ -119,9 +119,9 @@ export default {
     }
   },
   methods: {
-    signOut () {
+    async signOut () {
       // Call logout from store (now uses Supabase)
-      store.dispatch('logoutUser')
+      await this.$store.dispatch('logoutUser')
     },
     setLocale (locale) {
       store.dispatch('setLocale', locale)

@@ -120,6 +120,7 @@ import { fabric } from 'fabric'
 import { VueContext } from 'vue-context'
 import { uiMessage, showMessage, showSidebar, hideSidebar } from '@/assets/js/uimini.js'
 import { required, minLength, maxLength } from 'vuelidate/lib/validators'
+import { tourManager } from '@/utils/tourManager'
 import '@/assets/css/main.css'
 
 export default {
@@ -267,9 +268,10 @@ export default {
     this.canvas.on('mouse:down', this.mouseDown)
     // Первая, безусловная отрисовка элементов и связей в области рисования
     this.fabricDraw(this.elems, this.deps)
-    if (!this.$cookies.get('vtour_fabric_canvas_finished')) {
+    /* if (!this.$cookies.get('vtour_fabric_canvas_finished')) {
       this.$tours['canvas'].start()
-    }
+    }*/
+    this.checkAndStartTour()
   },
   methods: {
     // Метод отрисовки элементов и связей в области рисования
@@ -281,6 +283,45 @@ export default {
     fabricClearCanvas () {
       this.canvas.remove(...this.canvas.getObjects())
     }, */
+    async checkAndStartTour() {
+      try {
+        console.log('=== FABRIC CANVAS TOUR CHECK ===')
+        
+        // Тест соединения
+        await tourManager.testConnection()
+        
+        const tourCompleted = await tourManager.isTourCompleted('fabric_canvas')
+        console.log('Tour should start:', !tourCompleted)
+        
+        if (!tourCompleted) {
+          console.log('🚀 Starting fabric canvas tour')
+          this.$nextTick(() => {
+            this.$tours['canvas'].start()
+          })
+        } else {
+          console.log('⏩ Skipping fabric canvas tour - already completed')
+        }
+      } catch (error) {
+        console.error('💥 Error in checkAndStartTour:', error)
+      }
+    },
+
+    async StopCallback() {
+      try {
+        console.log('=== FABRIC CANVAS TOUR COMPLETED ===')
+        if (this.$tours['canvas'].isLast) {
+          console.log('🏁 Tour finished, saving to DB...')
+          const success = await tourManager.markTourCompleted('fabric_canvas')
+          if (success) {
+            console.log('💾 Successfully saved tour completion to DB')
+          } else {
+            console.error('💥 FAILED to save tour completion to DB')
+          }
+        }
+      } catch (error) {
+        console.error('💥 Error in StopCallback:', error)
+      }
+    },
     fabricDraw (elems, deps) {
       // Удалить весь список фабрик-объектов в области рисования
       this.canvas.remove(...this.canvas.getObjects())
