@@ -155,9 +155,8 @@ export default {
       dependentNodeId: null,
       selectedNodeDepsSatisfied: false, // Удовлетворены ли все зависиомсти выделенного узла
       canvasTourCallbacks: {
-        onPreviousStep: this.PreviousStepCallback,
-        onNextStep: this.NextStepCallback,
-        onStop: this.StopCallback
+        onPreviousStep: this.previousStepCallback,
+        onNextStep: this.nextStepCallback
       },
       lastMouseEvent: null
     }
@@ -268,9 +267,6 @@ export default {
     this.canvas.on('mouse:down', this.mouseDown)
     // Первая, безусловная отрисовка элементов и связей в области рисования
     this.fabricDraw(this.elems, this.deps)
-    /* if (!this.$cookies.get('vtour_fabric_canvas_finished')) {
-      this.$tours['canvas'].start()
-    }*/
     this.checkAndStartTour()
   },
   methods: {
@@ -285,41 +281,17 @@ export default {
     }, */
     async checkAndStartTour() {
       try {
-        console.log('=== FABRIC CANVAS TOUR CHECK ===')
+        // Сначала проверяем БД, потом cookies для обратной совместимости
+        const dbCompleted = await tourManager.isTourCompleted('fabric_canvas')
         
-        // Тест соединения
-        await tourManager.testConnection()
-        
-        const tourCompleted = await tourManager.isTourCompleted('fabric_canvas')
-        console.log('Tour should start:', !tourCompleted)
-        
-        if (!tourCompleted) {
+        if (!dbCompleted) {
           console.log('🚀 Starting fabric canvas tour')
-          this.$nextTick(() => {
-            this.$tours['canvas'].start()
-          })
+          this.$tours['canvas'].start()
         } else {
           console.log('⏩ Skipping fabric canvas tour - already completed')
         }
       } catch (error) {
         console.error('💥 Error in checkAndStartTour:', error)
-      }
-    },
-
-    async StopCallback() {
-      try {
-        console.log('=== FABRIC CANVAS TOUR COMPLETED ===')
-        if (this.$tours['canvas'].isLast) {
-          console.log('🏁 Tour finished, saving to DB...')
-          const success = await tourManager.markTourCompleted('fabric_canvas')
-          if (success) {
-            console.log('💾 Successfully saved tour completion to DB')
-          } else {
-            console.error('💥 FAILED to save tour completion to DB')
-          }
-        }
-      } catch (error) {
-        console.error('💥 Error in StopCallback:', error)
       }
     },
     fabricDraw (elems, deps) {
@@ -949,17 +921,29 @@ export default {
       }
       return canvasHeight
     },
-    PreviousStepCallback (currentStep) {
-      // console.log('[Vue Tour] A custom previousStep callback has been called on step ' + (currentStep + 1))
-    },
-    NextStepCallback (currentStep) {
-      if (currentStep === 0) {
-        showSidebar()
+    nextStepCallback(currentStep) {
+      console.log('▶️ Next step:', currentStep)
+      
+      // ЕСЛИ ЭТО ПОСЛЕДНИЙ ШАГ - сохраняем завершение тура
+      if (currentStep === this.steps.length - 1) {
+        console.log('🎯 Last step reached via Next button - completing tour')
+        this.completeTour()
       }
     },
-    StopCallback () {
-      if (this.$tours['canvas'].isLast) {
-        this.$cookies.set('vtour_fabric_canvas_finished', true)
+    previousStepCallback(currentStep) {
+      console.log('◀️ Previous step:', currentStep)
+    },
+    async completeTour() {
+      try {
+        console.log('💾 Completing fabric canvas tour...')
+        const success = await tourManager.markTourCompleted('fabric_canvas')
+        if (success) {
+          console.log('✅ Fabric canvas tour completed and saved')
+        } else {
+          console.error('❌ Failed to save tour completion')
+        }
+      } catch (error) {
+        console.error('💥 Error completing tour:', error)
       }
     }
   }
